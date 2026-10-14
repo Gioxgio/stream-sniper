@@ -1,0 +1,14 @@
+services:
+  stream-sniper:
+    build: .
+    image: stream-sniper:latest
+    restart: unless-stopped
+    environment:
+      # Credentials are picked up from the host environment or a
+      # sibling .env file (compose loads both automatically).
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
+      TWITCH_TOKEN: ${TWITCH_TOKEN:-}
+    volumes:
+      - ./channels.txt:/data/channels.txt:ro
+      - ./recordings:/data/recordings
