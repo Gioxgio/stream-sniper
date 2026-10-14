@@ -37,7 +37,7 @@ TARGET   := $(BUILD)/stream-sniper
 # unchanged tree still costs nothing.
 FLAGSTAMP := $(BUILD)/.flags
 
-SRCS     := main.c config.c probe.c recorder.c twitch_auth.c http.c log.c util.c jsonlite.c urlparse.c
+SRCS     := main.c config.c probe.c recorder.c twitch_auth.c http.c log.c util.c jsonlite.c urlparse.c notify.c
 OBJS     := $(SRCS:%.c=$(BUILD)/%.o)
 DEPS     := $(OBJS:.o=.d)
 
@@ -45,20 +45,22 @@ ASSETS   := $(BUILD)/ffmpeg-quiet $(BUILD)/ffprobe
 
 # Unit tests link against the real objects; main.o is the only
 # one filtered out (it defines main()). test_probe is the exception:
-# it compiles ../probe.c into itself with the HTTP and Twitch-auth
-# layers stubbed to read tests/fixtures/, so probe.o, http.o and
-# twitch_auth.o must stay out of its link (their symbols would
-# collide with the stubs). test_recorder is the opposite seam: it
-# drives the real recorder against a fake yt-dlp on PATH, so what the
-# child is handed can be read back.
-TESTS     := test_util test_urlparse test_jsonlite test_probe test_http test_recorder
+# it compiles ../probe.c into itself with the HTTP, Twitch-auth and
+# notification layers stubbed (fixtures for the first, no-ops for
+# the last), so probe.o, http.o, twitch_auth.o and notify.o must
+# stay out of its link (their symbols would collide with the stubs).
+# test_recorder and test_notify are the opposite seam: they drive
+# the real recorder against a fake yt-dlp on PATH - test_notify
+# additionally points SS_NOTIFY_URL at a loopback server, so what
+# stream-sniper POSTs can be read back.
+TESTS     := test_util test_urlparse test_jsonlite test_probe test_http test_recorder test_notify
 TESTBIN   := $(TESTS:%=$(BUILD)/%)
 TEST_OBJS := $(filter-out $(BUILD)/main.o,$(OBJS))
 TESTSRC   := $(TESTS:%=tests/%.c)
 TESTOBJ   := $(TESTSRC:.c=$(BUILD)/tests/%.o)
 TDEPS     := $(TESTOBJ:.o=.d)
 
-PROBE_TEST_SKIP := $(BUILD)/probe.o $(BUILD)/http.o $(BUILD)/twitch_auth.o
+PROBE_TEST_SKIP := $(BUILD)/probe.o $(BUILD)/http.o $(BUILD)/twitch_auth.o $(BUILD)/notify.o
 PROBE_TEST_OBJS := $(filter-out $(PROBE_TEST_SKIP),$(TEST_OBJS))
 PLAIN_TESTBIN   := $(filter-out $(BUILD)/test_probe,$(TESTBIN))
 

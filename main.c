@@ -15,6 +15,7 @@
 #include "config.h"
 #include "http.h"
 #include "log.h"
+#include "notify.h"
 #include "probe.h"
 #include "recorder.h"
 #include "ss.h"
@@ -44,7 +45,8 @@ static void usage(const char *prog)
         "  -h             this help\n"
         "\n"
         "env: TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_TOKEN,\n"
-        "     SS_WRAPPER_DIR (where ffmpeg-quiet/ffprobe live)\n",
+        "     SS_WRAPPER_DIR (where ffmpeg-quiet/ffprobe live),\n"
+        "     SS_NOTIFY_URL (POST recording events to <url>/notifications)\n",
         prog);
 }
 
@@ -155,6 +157,7 @@ int main(int argc, char **argv)
     sigaction(SIGTERM, &sa, NULL);
 
     http_global_init();
+    notify_init();
     twitch_auth_init_from_env();
 
     if (config_load(g_opts.channels_file) != 0)

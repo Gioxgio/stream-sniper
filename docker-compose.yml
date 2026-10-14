@@ -9,6 +9,9 @@ services:
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
       TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
       TWITCH_TOKEN: ${TWITCH_TOKEN:-}
+      # Recording events (started/stopped) are POSTed to
+      # ${SS_NOTIFY_URL}/notifications; unset = notifications off.
+      SS_NOTIFY_URL: ${SS_NOTIFY_URL:-}
     volumes:
       - ./channels.txt:/data/channels.txt:ro
       - ./recordings:/data/recordings

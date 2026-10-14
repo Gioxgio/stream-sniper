@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include "log.h"
+#include "notify.h"
 #include "ss.h"
 #include "util.h"
 
@@ -410,6 +411,13 @@ static void *record_thread(void *arg)
 
     logmsg(LOG_INFO, "REC  %-*s pid %-7d -> %s", LOG_SLUG_COL, ch->slug,
            (int)pid, dir);
+    /*
+     * The fork succeeded, so yt-dlp is running: this is the one
+     * start notification per recording. The early failures above
+     * (bad output dir, bad template, fork failure) notify nothing,
+     * and dry-run never enters this thread.
+     */
+    notify_recording_started(ch);
 
     int status = 0;
     while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
@@ -465,6 +473,13 @@ static void *record_thread(void *arg)
         logmsg(LOG_WARN, "STOP %-*s killed by signal %d after %s%s%s",
                LOG_SLUG_COL, ch->slug, WTERMSIG(status), dur,
                logpath[0] ? " - see " : "", logpath[0] ? logpath : "");
+
+    /*
+     * One stop for every start: natural stream end, yt-dlp failure,
+     * and shutdown all flow through here, and the same exit-status
+     * check that picked the log line picks the outcome word.
+     */
+    notify_recording_stopped(ch, clean, dur);
 
     return NULL;
 }

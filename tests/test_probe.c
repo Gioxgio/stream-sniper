@@ -10,8 +10,10 @@
  * fixture stands in for a dead host. The production probe.c
  * is compiled in via #include below - only the I/O seam is
  * fake, so the dispatch, the JSON scan and the predicates are
- * the real code. (The Makefile keeps probe.o, http.o and
- * twitch_auth.o out of this binary's link.)
+ * the real code. Notifications are stubbed to no-ops as well: the
+ * recorder is linked in, and notify is an I/O layer like http.
+ * (The Makefile keeps probe.o, http.o, twitch_auth.o and
+ * notify.o out of this binary's link.)
  *
  * Run from the project root (make test does): the fixture
  * paths are relative.
@@ -24,6 +26,7 @@
 #include <string.h>
 
 #include "http.h"
+#include "notify.h"
 #include "probe.h"
 #include "twitch_auth.h"
 #include "urlparse.h"
@@ -192,6 +195,23 @@ void twitch_auth_invalidate(void)
 {
     g_token = "second-token";
     g_invalidated++;
+}
+
+/* --- the notify seam: notifications off --- */
+
+void notify_init(void) { }
+
+void notify_recording_started(const channel_t *ch)
+{
+    (void)ch;
+}
+
+void notify_recording_stopped(const channel_t *ch, bool clean,
+                              const char *dur)
+{
+    (void)ch;
+    (void)clean;
+    (void)dur;
 }
 
 /* The production probe, compiled in against the seam above. */
